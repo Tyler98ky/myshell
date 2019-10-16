@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/mnt/c/Users/tug65404/CLionProjects/linux-shell/myshell.c
+stdio.h
+-
+string.h
+-
+stdlib.h
+-
+unistd.h
+-
+myshell.h
+/mnt/c/Users/tug65404/CLionProjects/linux-shell/myshell.h
+
+/mnt/c/Users/tug65404/CLionProjects/linux-shell/myshell.h
+
