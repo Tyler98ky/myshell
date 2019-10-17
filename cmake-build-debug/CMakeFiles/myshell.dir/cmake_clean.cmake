@@ -1,5 +1,5 @@
 file(REMOVE_RECURSE
-  "CMakeFiles/myshell.dir/myshell.o"
+  "CMakeFiles/myshell.dir/myshell.c.o"
   "myshell.pdb"
   "myshell"
 )

@@ -16,7 +16,7 @@ void printHelp(void);
 void parseSpace(char* input, char** inputParsed);
 int processString(char* input, char** inputParsed, char** inputParsedpipe);
 int parsePipe(char* input, char** inputPiped);
-void init_shell(void);
+void greetingMessage(void);
 void printEnvironmentVariables(void);
 
 #endif //LINUX_SHELL_MYSHELL_H

@@ -6,8 +6,6 @@
 
 #include "myshell.h"
 
-#define MAXCOM 1000 // max number of letters to be supported
-#define MAXLIST 100 // max number of commands to be supported
 
 extern char **environ;
 
@@ -25,23 +23,17 @@ int main()
     * }
     */
 
-    char inputString[MAXCOM], *parsedArgs[MAXLIST];
-    char* parsedArgsPiped[MAXLIST];
+    char inputString[1024];
+    char *parsedArgs[128];
+    char* parsedArgsPiped[128];
     int execFlag = 0;
-    init_shell();
+    greetingMessage();
 
     while (1) {
-        // take input
         if (getInput(inputString))
             continue;
-        // process
         execFlag = processString(inputString, parsedArgs, parsedArgsPiped);
-        // processString  returns zero if there is no command
-        // or it is a builtin command,
-        // 1 if it is a simple command
-        // 2 if it is including a pipe.
 
-        // execute
         if (execFlag == 1)
             executeCommands(parsedArgs);
 
@@ -50,13 +42,13 @@ int main()
     }
 }
 
-void init_shell() {
+void greetingMessage() {
     printf("Hello world, this is my shell\nGo ahead and enter in some commands!\n\n\n");
 
 }
 
 /**
- * Prompt for user input with >>> and read the following characters as a string
+ * Prompt for user input with myshell> and read the following characters as a string
  * @param input
  * @return 1 if input wasn't valid, 0 otherwise. If it was valid, also copy the contents of the input into @param input
  */
@@ -108,11 +100,9 @@ void executeCommands(char** inputParsed)
     * }
     */
 
-    // Forking a child
     pid_t pid = fork();
 
     if (pid == -1) {
-        printf("\nFailed forking child..");
         return;
     } else if (pid == 0) {
         if (execvp(inputParsed[0], inputParsed) < 0) {
@@ -122,7 +112,6 @@ void executeCommands(char** inputParsed)
         }
         exit(0);
     } else {
-        // waiting for child to terminate
         wait(NULL);
         return;
     }
@@ -167,23 +156,18 @@ void executeCommandsPiped(char** inputParsed, char** parsedpipe)
     * }
     */
 
-    // 0 is read end, 1 is write end
     int pipefd[2];
     pid_t p1, p2;
 
     if (pipe(pipefd) < 0) {
-        printf("\nPipe could not be initialized");
-        return;
+        return;  // pipe failed
     }
     p1 = fork();
     if (p1 < 0) {
-        printf("\nCould not fork");
-        return;
+        return;  // fork failed
     }
 
-    if (p1 == 0) {
-        // Child 1 executing..
-        // It only needs to write at the write end
+    if (p1 == 0) {  // child process
         close(1);
         dup2(pipefd[1], 1);
         close(pipefd[0]);
@@ -193,18 +177,14 @@ void executeCommandsPiped(char** inputParsed, char** parsedpipe)
             write(STDERR_FILENO, error_message, strlen(error_message));
             exit(0);
         }
-    } else {
-        // Parent executing
+    } else {  // parent process
         p2 = fork();
 
         if (p2 < 0) {
-            printf("\nCould not fork");
-            return;
+            return;  // failed to fork
         }
 
-        // Child 2 executing..
-        // It only needs to read at the read end
-        if (p2 == 0) {
+        if (p2 == 0) {  // second child process
             close(0);
             dup2(pipefd[0], 0);
             close(pipefd[1]);
@@ -213,8 +193,7 @@ void executeCommandsPiped(char** inputParsed, char** parsedpipe)
                 write(STDERR_FILENO, error_message, strlen(error_message));
                 exit(0);
             }
-        } else {
-            // parent executing, waiting for two children
+        } else {  // parent
             wait(NULL);
         }
     }
@@ -286,19 +265,16 @@ int builtInCommands(char** inputParsed)
             clearTheScreen();
             return 1;
         case 2:
-//            dir();
             return 1;
         case 3:
             printEnvironmentVariables();
             return 1;
         case 4:
-//            echo("");
             return 1;
         case 5:
             printHelp();
             return 1;
         case 6:
-//            pause();
             return 1;
         case 7:
             exit(0);
@@ -321,10 +297,7 @@ void printHelp()
     * */
 
     char helpText[] = "Built-in commands:\n\t{\"cd\", \"clr\", \"dir\", \"environ\", \"echo\", \"help\", \"pause\", \"quit\"}\n";
-//    executeCommandsPiped(helpText, "[more]");
     printf("%s\n", helpText);
-//    executeCommandsPiped()
-
 }
 
 
@@ -335,9 +308,7 @@ void parseSpace(char* input, char** inputParsed)
     * return parsedString;
     * */
 
-    int i;
-
-    for (i = 0; i < MAXLIST; i++) {
+    for (int i = 0; i < 128; i++) {
         inputParsed[i] = strsep(&input, " ");
 
         if (inputParsed[i] == NULL)
@@ -399,7 +370,7 @@ int parsePipe(char* input, char** inputPiped)
     }
 
     if (inputPiped[1] == NULL)
-        return 0; // returns zero if no pipe is found.
+        return 0;  // no pipe found
     else {
         return 1;
     }
